@@ -12,7 +12,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
         with:
-          path: app
+          sparse-checkout: |
+            app
       - name: node build and installation
         uses: actions/setup-node@v4
         with:
