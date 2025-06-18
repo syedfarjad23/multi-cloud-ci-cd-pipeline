@@ -1,8 +1,8 @@
 variable "aws_region" {
-  default = "eu-west-1"
+  default = "eu-west-3"
 }
 
 variable "existing_key_name" {
-  description = ""
-  default     = "my-aws-key"
+  description = "AWS public access key"
+  default     = "aws_test_key_1"
 }
