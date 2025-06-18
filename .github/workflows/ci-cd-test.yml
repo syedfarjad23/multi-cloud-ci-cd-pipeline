@@ -13,8 +13,6 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           sparse-checkout: |
-            *
-            !*/
             app
       - name: node build and installation
         uses: actions/setup-node@v4
@@ -41,6 +39,7 @@ jobs:
           push: true
           tags: techchoco/test_node_app:1.0.${{ github.run_number }}
   deployment:
+    needs: built
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH to EC2
