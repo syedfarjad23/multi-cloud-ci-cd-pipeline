@@ -1,0 +1,54 @@
+name: Deployment to ec2-server
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  built:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          path: app
+      - name: node build and installation
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm i      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: techchoco/test_node_app:1.0.${{ github.run_number }}
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH to EC2
+        uses: appleboy/ssh-action@v0.1.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }} # or "ubuntu", depending on your AMI
+          port: 22
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+              cd ${{ secrets.EC2_PATH }}
+              dchl
+              docker stop test_app_1 || true
+              docker rm -f test_app_1 || true
+              docker run -p 3000:3000 --name test_app_1 -d techchoco/test_node_app:1.0.${{ github.run_number }}
