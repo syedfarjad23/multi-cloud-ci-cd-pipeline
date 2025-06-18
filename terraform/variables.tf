@@ -1,8 +1,14 @@
-variable "aws_region" {
+variable "region" {
   default = "eu-west-3"
 }
 
-variable "existing_key_name" {
-  description = "AWS public access key"
-  default     = "aws_test_key_1"
+
+variable "instance_type" {
+  default = "t2.micro"
+}
+
+variable "key_name" {
+  description = "aws_test_key_1"
+  type = string
+  default = "aws_test_key_1"
 }

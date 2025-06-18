@@ -1,21 +1,21 @@
 provider "aws" {
-  region = var.aws_region
+  region = var.region
 }
 
-resource "aws_security_group" "web_sg" {
-  name        = "web-sg"
-  description = "Allow SSH and HTTP"
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Must be tighten in case of prod / staging
-  }
+resource "aws_security_group" "app_sg" {
+  name_prefix = "app-sg-"
 
   ingress {
     from_port   = 3000
     to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -28,22 +28,26 @@ resource "aws_security_group" "web_sg" {
   }
 }
 
-resource "aws_instance" "web_app" {
-  ami                    = "ami-0c02fb55956c7d316" # Amazon Linux 2
-  instance_type          = "t2.micro"
-  key_name               = var.existing_key_name   # use your existing key pair name here
-  security_groups        = [aws_security_group.web_sg.name]
+resource "aws_instance" "app_server" {
+  ami                    = "ami-0c9fa54459dae7b6d" # Ubuntu 22.04 in eu-west-1
+  instance_type          = var.instance_type
+  key_name               = var.key_name
+  vpc_security_group_ids = [aws_security_group.app_sg.id]
 
   user_data = <<-EOF
               #!/bin/bash
-              yum update -y
-              amazon-linux-extras install docker -y
-              service docker start
-              usermod -a -G docker ec2-user
-              
+              sudo yum update -y
+              sudo yum -y install docker
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -a -G docker ec2-user
+              sudo chmod 666 /var/run/docker.sock
               EOF
 
   tags = {
-    Name = "multi-cloud-webapp"
+    Name = "NodeAppServer"
   }
+}
+output "public_ip" {
+  value = aws_instance.app_server.public_ip
 }
