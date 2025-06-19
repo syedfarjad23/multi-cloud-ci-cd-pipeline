@@ -6,7 +6,7 @@ const port = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
   res.send({
-    message: "Hello from the Multi-Cloud App! This is testing of CICD",
+    message: "Hello from the Multi-Cloud App!",
     hostname: os.hostname(),
     environment: process.env.DEPLOY_ENV || "Local",
     timestamp: new Date(),
