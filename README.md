@@ -124,7 +124,7 @@ multi-cloud-ci-cd-pipeline/
 
 **Syed Farjad**
 DevOps & Cloud Engineer with Industrial IoT & Manufacturing Optimization focus
-[LinkedIn Profile](https://www.linkedin.com/in/syedfarjad23/)
+[LinkedIn Profile](https://www.linkedin.com/in/muhammadfarjad2/)
 
 ---
 
