@@ -43,31 +43,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check SSH connectivity
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
         run: |
           echo "Testing SSH connection..."
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-          ssh -i <(echo "${{ secrets.EC2_SSH_KEY }}") \
-              -o StrictHostKeyChecking=no \
-              ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-              "echo 'SSH connection successful!'"
-        shell: bash
-        env:
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-  
-      - name: Deploy via SSH to EC2
-        uses: appleboy/ssh-action@v1.0.0  # Updated to latest stable version
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          port: 22
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd ${{ secrets.EC2_PATH }}
-            docker login -u ${{ vars.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-            docker pull techchoco/test_node_app:1.0.${{ github.run_number }}
-            docker stop test_app_1 || true
-            docker rm -f test_app_1 || true
-            docker run -p 3000:3000 \
-              --name test_app_1 \
-              -d \
-              techchoco/test_node_app:1.0.${{ github.run_number }}
+          echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
+          ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
+          echo "Current directory: $(pwd)"
+          echo "Listing home directory:"
+          ls -la ~
+          dchl
+          cd ${{ secrets.EC2_PATH }}
+          docker stop test_app_1 || true
+          docker rm -f test_app_1 || true
+          docker run -p 3000:3000 \
+            --name test_app_1 \
+            -d \
+            techchoco/test_node_app:1.0.${{ github.run_number }}
