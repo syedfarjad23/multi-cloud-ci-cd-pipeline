@@ -14,6 +14,7 @@ jobs:
         with:
           sparse-checkout: |
             app
+            security
       - name: node build and installation
         uses: actions/setup-node@v4
         with:
@@ -38,8 +39,17 @@ jobs:
           context: app
           push: true
           tags: techchoco/test_node_app:1.0.${{ github.run_number }}
-  deployment:
+  
+  security_test:
     needs: built
+    runs-on: ubuntu-latest
+    steps:
+      - name: trivy scan
+        run: |
+          chmod +x security/trivy_scan.sh
+          ./security/trivy_scan.sh techchoco/test_node_app:1.0.$RUN_NUMBER
+  deployment:
+    needs: security_test
     runs-on: ubuntu-latest
     steps:
       - name: Check SSH connectivity
