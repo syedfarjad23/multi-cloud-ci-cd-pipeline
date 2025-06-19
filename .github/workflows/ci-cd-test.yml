@@ -47,18 +47,25 @@ jobs:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
+          EC2_PATH: ${{ secrets.EC2_PATH }}
+          RUN_NUMBER: ${{ github.run_number }}
+          DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           echo "Testing SSH connection..."
-          echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
-          ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
-          echo "Current directory: $(pwd)"
-          echo "Listing home directory:"
-          ls -la ~
-          dchl
-          cd ${{ secrets.EC2_PATH }}
-          docker stop test_app_1 || true
-          docker rm -f test_app_1 || true
-          docker run -p 3000:3000 \
-            --name test_app_1 \
-            -d \
-            techchoco/test_node_app:1.0.${{ github.run_number }}
+          echo "$PRIVATE_KEY" > github-ec2.pem
+          chmod 600 github-ec2.pem
+          
+          # Use double quotes for the entire SSH command
+          ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} "\
+            echo 'Current directory: ' && pwd && \
+            echo 'Listing home directory:' && \
+            ls -la ~ && \
+            docker login -u $DOCKER_USER -p $DOCKER_TOKEN && \
+            cd '$EC2_PATH' && \
+            docker stop test_app_1 || true && \
+            docker rm -f test_app_1 || true && \
+            docker run -p 3000:3000 \
+              --name test_app_1 \
+              -d \
+              techchoco/test_node_app:1.0.$RUN_NUMBER"
