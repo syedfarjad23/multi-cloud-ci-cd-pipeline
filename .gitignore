@@ -27,3 +27,5 @@ Thumbs.db
 *.tmp
 *.swp
 *.exe
+
+multicloud_cicd_pipeline.drawio
