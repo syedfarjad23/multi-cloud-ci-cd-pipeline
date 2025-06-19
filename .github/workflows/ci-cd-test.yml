@@ -44,10 +44,21 @@ jobs:
     needs: built
     runs-on: ubuntu-latest
     steps:
-      - name: trivy scan
-        run: |
-          chmod +x security/trivy_scan.sh
-          ./security/trivy_scan.sh techchoco/test_node_app:1.0.$RUN_NUMBER
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+        with:
+          # Need to include the security directory
+          sparse-checkout: |
+            security
+          # Preserve file permissions
+          persist-credentials: true
+
+      - name: Make script executable
+        run: chmod +x security/trivy_scan.sh
+
+      - name: Run trivy scan
+        run: ./security/trivy_scan.sh techchoco/test_node_app:1.0.${{ github.run_number }}
+
   deployment:
     needs: security_test
     runs-on: ubuntu-latest
